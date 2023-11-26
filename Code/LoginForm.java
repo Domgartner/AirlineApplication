@@ -1,14 +1,15 @@
-package ProjectCode;
+package Code;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class LoginGUI extends JFrame {
+public class LoginForm extends JFrame {
+    private static LoginForm loginGUI;
     private JTextField emailField;
     private JPasswordField passwordField;
 
-    public LoginGUI() {
+    public LoginForm() {
         setTitle("Welcome to ENSF480 Airline");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -51,23 +52,25 @@ public class LoginGUI extends JFrame {
         String email = emailField.getText();
         char[] passwordChars = passwordField.getPassword();
         String password = new String(passwordChars);
-        boolean status = DatabaseManager.checkLogin(email, password);
+        boolean status = DatabaseController.checkLogin(email, password);
         System.out.println(status);
         if (status) {
             if (email.contains("aircraftAdmin")) {
                 // Redirect to aircraft admin functionality
                 System.out.println("Redirecting to Aircraft Admin functionality");
-                new Admin(email);        // Create Admin object
+                setVisible(false);
+                new Admin(email, password);        // Create Admin object
             } else if (email.contains("aircraftAttendant")) {
                 // Redirect to regular user functionality
-                System.out.println("Redirecting to aircraftAttendant functionality");
-                new FlightAttendant();        // Create Flight Attendent object
+                System.out.println("Redirecting to Aircraft Attendant functionality");
+                setVisible(false);
+                new FlightAttendant(email, password);        // Create Flight Attendent object
             } else if (email.contains("airlineAgent")) {
                 System.out.println("Redirecting to airlineAgent functionality");
-                new AirlineAgent();        // Create Airline Agent object
+                new AirlineAgent(email, password);        // Create Airline Agent object
             } else {
                 System.out.println("Redirecting to Customer functionality");
-                new Customer();     
+                new Customer(email, password);     
             }
         } else {
             // Handle incorrect login credentials
@@ -86,8 +89,9 @@ public class LoginGUI extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                DatabaseManager.getOnlyInstance();
-                new LoginGUI().setVisible(true);
+                DatabaseController.getOnlyInstance();
+                loginGUI = new LoginForm();
+                loginGUI.setVisible(true);
             }
         });
     }
