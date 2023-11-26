@@ -103,9 +103,10 @@ public class DatabaseController {
     public static ArrayList<String> browsePassengersByFlight(String flightnum) {
         ArrayList<String> passengers = new ArrayList<>();
     
-        try (Connection connection = getOnlyInstance();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT FirstName, LastName, Email, SeatNum FROM PASSENGERS WHERE FlightNum = ?");
-        ) {
+        try {
+
+             PreparedStatement preparedStatement = conn.prepareStatement("SELECT FirstName, LastName, Email, SeatNum FROM PASSENGERS WHERE FlightNum = ?");
+         
             // Set the FlightNum parameter in the prepared statement
             preparedStatement.setString(1, flightnum);
     

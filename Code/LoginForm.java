@@ -81,8 +81,9 @@ public class LoginForm extends JFrame {
     }
     private void continueAsGuest() {
         // Action for "Continue as Guest" button
-        new Guest();
-        System.out.println("Continue as Guest");
+        Guest guest = new Guest();
+        // GuestGUI guestGUI =  new GuestGUI();
+        //System.out.println("Continue as Guest");
     }
 
     public static void main(String[] args) {

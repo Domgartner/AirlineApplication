@@ -9,15 +9,13 @@ public class GuestGUI extends JFrame {
     private JTextField flightNumField;
     private JTextArea passengersTextArea;
 
-    public GuestGUI(FlightAttendant flightAttendant) {
+    public GuestGUI(Guest guest) {
         setTitle("Welcome Guest!");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-
 
 
         JLabel flightNumLabel = new JLabel("Enter Flight Number:");
