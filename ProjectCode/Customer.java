@@ -1,4 +1,4 @@
-package java;
+package ProjectCode;
 public class Customer extends User implements Browse, Notification{
     
 

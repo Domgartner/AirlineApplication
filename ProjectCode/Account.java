@@ -1,4 +1,4 @@
-package java;
+package ProjectCode;
 public class Account {
     private String email;
     private Name name;

@@ -1,4 +1,4 @@
-package java;
+package ProjectCode;
 
 
 public abstract interface Notification {

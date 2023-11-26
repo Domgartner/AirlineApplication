@@ -1,4 +1,4 @@
-package java;
+package ProjectCode;
 public class Purchase implements Notification{
     private Receipt reciept;
     private Ticket ticket;
