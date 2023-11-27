@@ -11,17 +11,23 @@ public class LoginForm extends JFrame {
 
     public LoginForm() {
         setTitle("Welcome to ENSF480 Airline");
-        setSize(900, 600);
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 2, 10, 10)); // Adjusted for better spacing
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         JLabel titleLabel = new JLabel("Welcome to ENSF480 Airline");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 30)); // Increased font size for emphasis
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+
         JLabel emailLabel = new JLabel("Email:");
         emailField = new JTextField();
         JLabel passwordLabel = new JLabel("Password:");
         passwordField = new JPasswordField();
+
         JButton loginButton = new JButton("Login");
         loginButton.addActionListener(new ActionListener() {
             @Override
@@ -29,6 +35,7 @@ public class LoginForm extends JFrame {
                 handleLogin();
             }
         });
+
         JButton guestButton = new JButton("Continue as Guest");
         guestButton.addActionListener(new ActionListener() {
             @Override
@@ -36,17 +43,30 @@ public class LoginForm extends JFrame {
                 continueAsGuest();
             }
         });
-        panel.add(titleLabel);
+
+        JButton signUpButton = new JButton("Sign Up");
+        signUpButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openSignUp();
+            }
+        });
+
+        panel.add(titleLabel, gbc);
         panel.add(new JLabel()); // Empty label for spacing
-        panel.add(emailLabel);
-        panel.add(emailField);
-        panel.add(passwordLabel);
-        panel.add(passwordField);
+        panel.add(emailLabel, gbc);
+        panel.add(emailField, gbc);
+        panel.add(passwordLabel, gbc);
+        panel.add(passwordField, gbc);
         panel.add(new JLabel()); // Empty label for spacing
-        panel.add(loginButton);
+        panel.add(loginButton, gbc);
         panel.add(new JLabel()); // Empty label for spacing
-        panel.add(guestButton);
+        panel.add(guestButton, gbc);
+        panel.add(signUpButton, gbc);
+
         add(panel);
+        pack();
+        setLocationRelativeTo(null); // Center the frame on the screen
     }
     private void handleLogin() {
         String email = emailField.getText();
@@ -84,6 +104,13 @@ public class LoginForm extends JFrame {
         Guest guest = new Guest();
         // GuestGUI guestGUI =  new GuestGUI();
         //System.out.println("Continue as Guest");
+    }
+
+    private void openSignUp() {
+        // Close the current LoginForm
+        setVisible(false);
+        // Open the SignUpGUI
+        new SignUpGUI().setVisible(true);
     }
 
     public static void main(String[] args) {

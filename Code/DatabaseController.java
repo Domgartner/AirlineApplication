@@ -128,5 +128,10 @@ public class DatabaseController {
         }
         return passengers;
     }
+
+
+    public static void SignUP() {
+        
+    }
     
 }
