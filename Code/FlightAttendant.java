@@ -11,6 +11,7 @@ public class FlightAttendant extends User {
         attendantGUI.setVisible(true);
     }
 
+    
     public static ArrayList<String> browsePassengersByFlight(String flightnum) {
         ArrayList<String> res = DatabaseController.browsePassengersByFlight(flightnum);
         return res;

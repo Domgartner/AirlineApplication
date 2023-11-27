@@ -11,7 +11,7 @@ public class LoginForm extends JFrame {
 
     public LoginForm() {
         setTitle("Welcome to ENSF480 Airline");
-        setSize(400, 300);
+        setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel();
@@ -90,6 +90,7 @@ public class LoginForm extends JFrame {
                 new AirlineAgent(email, password);        // Create Airline Agent object
             } else {
                 System.out.println("Redirecting to Customer functionality");
+                setVisible(false);
                 new Customer(email, password);     
             }
         } else {

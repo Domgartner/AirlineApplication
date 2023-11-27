@@ -130,8 +130,95 @@ public class DatabaseController {
     }
 
 
-    public static void SignUP() {
-        
+    public static boolean signUp(String firstName, String lastName, String address, String email, String password) {
+        if (firstName == null || lastName == null || address == null || email == null || password == null) {
+            // At least one of the fields is null
+            return false;
+        }
+        try {
+            Connection connection = getOnlyInstance();
+            String query = "INSERT INTO USERS (FirstName, LastName, Email, Address, Password) VALUES (?, ?, ?, ?, ?)";
+            
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, firstName);
+                preparedStatement.setString(2, lastName);
+                preparedStatement.setString(3, email);
+                preparedStatement.setString(4, address);
+                preparedStatement.setString(5, password);
+                preparedStatement.executeUpdate();
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
+
+
+    public static ArrayList<String> searchFlights(String departureDate, String flightNum, String flightDest) {
+        Connection connection = getOnlyInstance();
+        ArrayList<String> matchingFlights = new ArrayList<>();
+    
+        // Constructing the base of the SQL query
+        StringBuilder sql = new StringBuilder("SELECT * FROM FLIGHTS WHERE ");
+    
+        // List to keep track of parameters to be set in the prepared statement
+        ArrayList<Object> parameters = new ArrayList<>();
+    
+        // Check and append conditions based on the provided parameters
+        if (departureDate != null && !departureDate.isEmpty()) {
+            sql.append("DepartureDate = ? ");
+            parameters.add(departureDate);
+        }
+        if (flightNum != null && !flightNum.isEmpty()) {
+            if (!parameters.isEmpty()) {
+                sql.append("AND ");
+            }
+            sql.append("FlightNum = ? ");
+            parameters.add(flightNum);
+        }
+        if (flightDest != null && !flightDest.isEmpty()) {
+            if (!parameters.isEmpty()) {
+                sql.append("AND ");
+            }
+            sql.append("FlightDest = ? ");
+            parameters.add(flightDest);
+        }
+    
+        // If no parameters are given, return all flights
+        if (parameters.isEmpty()) {
+            return browseAvailableFlights();
+        }
+    
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql.toString());
+    
+            // Setting the parameters in the prepared statement
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
+    
+            ResultSet resultSet = preparedStatement.executeQuery();
+    
+            // Processing the result set
+            while (resultSet.next()) {
+                String flightNumber = resultSet.getString("FlightNum");
+                String destination = resultSet.getString("FlightDest");
+                int aircraft = resultSet.getInt("AircraftID");
+                String departure = resultSet.getString("DepartureDate");
+    
+                String flightInfo = String.format(
+                        "Flight Number: %s \n  Destination: %s \n Aircraft: %s \n  Departure: %s",
+                        flightNumber, destination, aircraft, departure);
+                matchingFlights.add(flightInfo);
+            }
+            return matchingFlights;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Handle exceptions (e.g., log or throw a runtime exception)
+            throw new RuntimeException("Failed to search flights.");
+        }
+    }
+    
     
 }
