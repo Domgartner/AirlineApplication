@@ -19,7 +19,5 @@ public class FlightAttendant extends User {
     public void performStrategy() {
         strategy.showGUI();
     }
-
-
-
+    
 }

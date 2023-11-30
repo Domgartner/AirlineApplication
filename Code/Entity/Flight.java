@@ -8,7 +8,6 @@ public class Flight {
     private String destination;
     private String startPoint;
 
-
     public Flight(String flightNum, Date departureDate, int aircraftID, String dest, String start) {
         this.flightNum = flightNum;
         this.aircraftID = aircraftID;
@@ -24,7 +23,6 @@ public class Flight {
         this.destination = dest;
         this.startPoint = start;
     }
-
 
     public Aircraft getAircraft() {
         return aircraft;

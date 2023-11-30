@@ -15,7 +15,5 @@ public class Guest extends User{
     public void performStrategy() {
         strategy.showGUI();
     }
-
-
-    
+  
 }

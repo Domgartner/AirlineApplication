@@ -18,6 +18,5 @@ public class Customer extends User {
     public void performStrategy() {
         strategy.showGUI();
     }
-
-
+    
 }

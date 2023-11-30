@@ -10,6 +10,5 @@ public class AirlineAgent extends User {
     public void performStrategy() {
         strategy.showGUI();
     }
-
-    
+  
 }
