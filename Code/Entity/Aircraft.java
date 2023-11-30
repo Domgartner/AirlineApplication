@@ -1,13 +1,11 @@
-package Code;
-
+package Code.Entity;
 import java.util.ArrayList;
 
 public class Aircraft {
     private int aircraftID;
     private String aircraftType;
     private int numSeats;
-    // private ArrayList<Seat> seats;
-
+    private static ArrayList<Crew> crewMembers;
 
     public Aircraft(int id, String type, int num) {
         aircraftID = id;
@@ -15,7 +13,19 @@ public class Aircraft {
         numSeats = num;
     }
 
-    public int getAircaftID() {
+    public Aircraft(String type, int num) {
+        aircraftType = type;
+        numSeats = num;
+    }
+
+    public static void setCrew(ArrayList<Crew> c) {
+        crewMembers = c;
+    }
+    public static ArrayList<Crew> getCrew() {
+        return crewMembers;
+    }
+
+    public int getAircraftID() {
         return aircraftID;
     }
 
