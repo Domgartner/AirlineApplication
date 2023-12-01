@@ -6,8 +6,6 @@ import Code.Entity.FlightAttendant;
 import Code.Entity.User;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class FlightAttendantGUI extends JFrame {
@@ -30,23 +28,13 @@ public class FlightAttendantGUI extends JFrame {
         flightNumField = new JTextField(20);
 
         JButton browseButton = new JButton("Browse Passengers");
-        browseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleBrowsePassengers();
-            }
-        });
+        browseButton.addActionListener(e -> handleBrowsePassengers());
 
         passengersTextArea = new JTextArea(15, 40);
         JScrollPane scrollPane = new JScrollPane(passengersTextArea);
 
         JButton logoutButton = new JButton("Logout");
-        logoutButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleLogout();
-            }
-        });
+        logoutButton.addActionListener(e -> handleLogout());
 
         // Title
         gbc.gridx = 0;
@@ -89,10 +77,10 @@ public class FlightAttendantGUI extends JFrame {
         ArrayList<String> passengers = FlightAttendant.browsePassengersByFlight(flightNum);
 
         // Display passengers in the text area
+        passengersTextArea.setEditable(false);
         passengersTextArea.setText("");
         for (String passenger : passengers) {
-            passengersTextArea.append(passenger + "\n");
+            passengersTextArea.append(passenger + "\n\n");
         }
     }
-
 }

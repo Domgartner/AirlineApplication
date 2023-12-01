@@ -73,6 +73,29 @@ public class DatabaseController {
         return null;
     }
 
+    public static ArrayList<String> getAssociatedFlightNumbers(int aircraftID) {
+        Connection connection = getOnlyInstance();
+        String sql = "SELECT FlightNum FROM FLIGHTS WHERE AircraftID = ?";
+        
+        try {
+            ArrayList<String> associatedFlights = new ArrayList<>();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, aircraftID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            
+            while (resultSet.next()) {
+                String flightNum = resultSet.getString("FlightNum");
+                associatedFlights.add(flightNum);
+            }
+            
+            return associatedFlights;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Handle exceptions (e.g., log or throw a runtime exception)
+            throw new RuntimeException("Failed to get associated flight numbers.");
+        }
+    }    
+
     public static ArrayList<Flight> browseAvailableFlights() {
         Connection connection = getOnlyInstance();
         String sql = "SELECT * FROM FLIGHTS";

@@ -23,7 +23,7 @@ public class AdminGUI extends JFrame {
     private JTextField flightNumField;
     private JTextField flightStartField;
     private JTextField flightDestField;
-    private JPanel resultArea;
+    private JEditorPane resultArea; // Replaced JTextArea with JEditorPane
     private JScrollPane resultScrollPane;
 
     public AdminGUI() {
@@ -193,7 +193,6 @@ public class AdminGUI extends JFrame {
                 flightInfo.append(" Departure Date: ").append(flight.getDepartureDate().getFormattedDate());
                 flightInfo.append(" Departure Location: ").append(flight.getStartPoint());
                 flightInfo.append(" Destination: ").append(flight.getDestination());
-                //flightInfo.append(" Aircraft Type: ").append(flight.getAircraft().getAircraftType());
                 flightInfo.append(" Aircraft ID: ").append(flight.getAircraftID()).append('\n');
 
                 JButton flightButton = new JButton(flightInfo.toString());
@@ -348,7 +347,6 @@ public class AdminGUI extends JFrame {
             default:
                 return false; // Indicate that the update was not successful for unknown adjustment types
         }
-    
         return userInput != null; // Indicate if the update was successful
     }    
 
@@ -458,7 +456,7 @@ public class AdminGUI extends JFrame {
         // Initialize components
         frame = new JFrame("Search Flights Form");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(700, 500);
+        frame.setSize(940, 610);
     
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -476,6 +474,11 @@ public class AdminGUI extends JFrame {
         flightStartField.setBorder(BorderFactory.createTitledBorder("Departure Location"));
         JButton searchButton = new JButton("Search");
     
+        // Center panel with flight list
+        resultArea = new JEditorPane("text/html", "");
+        resultArea.setEditable(false);
+        resultScrollPane = new JScrollPane(resultArea);
+    
         // Add components to the formPanel using GridBagConstraints
         formPanel.add(departureDateField, gbc);
         gbc.gridy++;
@@ -486,23 +489,24 @@ public class AdminGUI extends JFrame {
         formPanel.add(flightStartField, gbc);
         gbc.gridy++;
         formPanel.add(searchButton, gbc);
+        // Add resultScrollPane using GridBagConstraints
+        gbc.gridy++;
+        gbc.gridwidth = 5; // Set the grid width to span multiple columns
+        gbc.fill = GridBagConstraints.BOTH; // Allow the component to expand both horizontally and vertically
+        formPanel.add(resultScrollPane, gbc);
     
-        // Results area
-        resultArea = new JPanel(); // Panel to hold search results
-        resultArea.setLayout(new BoxLayout(resultArea, BoxLayout.Y_AXIS));
-        resultScrollPane = new JScrollPane(resultArea);
-        resultScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-
         // Layout the main frame
-        frame.getContentPane().add(BorderLayout.CENTER, resultScrollPane);
-        frame.getContentPane().add(BorderLayout.SOUTH, formPanel);
+        frame.setLayout(new BorderLayout());
+        frame.add(resultScrollPane, BorderLayout.CENTER);
+        frame.add(formPanel, BorderLayout.SOUTH);
         frame.setVisible(true);
         frame.setLocationRelativeTo(null); // Center the frame on the screen
-
-        // Add action listener to the search button
+    
+        // Add action listener to the search button & initialize
         searchButton.addActionListener(this::searchAction);
-    }    
-
+        searchAction(null);
+    }
+    
     private void searchAction(ActionEvent event) {
         // Perform search based on the flight number
         String flightNum = flightNumField.getText().trim();
@@ -516,43 +520,27 @@ public class AdminGUI extends JFrame {
         departureTime = departureTime.isEmpty() ? null : departureTime;
         flightstart = flightstart.isEmpty() ? null : flightstart;
 
+        System.out.println(departureTime);
+        System.out.println(flightNum);
+        System.out.println(flightDest);
+
         // Use your existing search function here
         ArrayList<String> searchResults = DatabaseController.searchFlights(departureTime, flightNum, flightDest, flightstart);
 
         // Display the results in the result area
-        resultArea.removeAll(); // Clear previous results
-
-        // Add each search result to the result panel
+        StringBuilder htmlContent = new StringBuilder("<html>");
+        htmlContent.append("<style>body { font-family: Arial; font-size: 9.5px; }");
+        htmlContent.append("div { border: 1px solid black; padding: 10px; margin-bottom: 10px; background-color: #c3f3fa; }");
+        htmlContent.append("</style>");
         for (String info : searchResults) {
-            // Create a custom panel for each search result
-            JPanel resultEntryPanel = createResultEntryPanel(info);
-            resultArea.add(resultEntryPanel);
+            htmlContent.append("<div>");
+            htmlContent.append(info);
+            htmlContent.append("</div>");
         }
+        htmlContent.append("</html>");
 
-        // Repaint the frame to reflect the changes
-        frame.revalidate();
-        frame.repaint();
-    }
-
-    private JPanel createResultEntryPanel(String info) {
-        JPanel entryPanel = new JPanel();
-        entryPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        entryPanel.setLayout(new BoxLayout(entryPanel, BoxLayout.Y_AXIS));
-
-        JLabel entryLabel = new JLabel(info);
-        entryLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // Set a fixed size for the entry panel
-        entryPanel.setPreferredSize(new Dimension(400, 60));
-        // Set background color to white
-        entryPanel.setBackground(Color.WHITE);
-
-        // Add spacing between entry panels
-        entryPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, entryPanel.getPreferredSize().height));
-        entryPanel.add(Box.createVerticalGlue());
-        entryPanel.add(entryLabel);
-        entryPanel.add(Box.createVerticalGlue());
-        return entryPanel;
+        // Set the HTML content to the JEditorPane
+        resultArea.setText(htmlContent.toString());
     }
 
 // BROWSE AIRCRAFTS ------------------------------------------------------------------------------>
@@ -694,16 +682,26 @@ public class AdminGUI extends JFrame {
         removeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int option = JOptionPane.showConfirmDialog(detailsDialog,
-                        "Are you sure you want to remove this aircraft?",
-                        "Confirm Removal", JOptionPane.YES_NO_OPTION);
-                if (option == JOptionPane.YES_OPTION) {
-                    // Handle removing the aircraft
-                    DatabaseController.removeAircraft(aircraft.getAircraftID());
-                    aircraftListFrame.dispose(); // Close main list
-                    JOptionPane.showMessageDialog(detailsDialog, "Aircraft removed successfully.");
-                    detailsDialog.dispose(); // Close the details dialog
-                    browseAircrafts(); // Refresh list...
+                ArrayList<String> associatedFlights = DatabaseController.getAssociatedFlightNumbers(aircraft.getAircraftID());
+                
+                if (!associatedFlights.isEmpty()) {
+                    String flightsMessage = String.join(", ", associatedFlights);
+                    String errorMessage = "Cannot remove the aircraft. It is associated with flight(s):\n" + flightsMessage;
+                    
+                    JOptionPane.showMessageDialog(detailsDialog, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    int option = JOptionPane.showConfirmDialog(detailsDialog,
+                            "Are you sure you want to remove this aircraft?",
+                            "Confirm Removal", JOptionPane.YES_NO_OPTION);
+                    
+                    if (option == JOptionPane.YES_OPTION) {
+                        // Handle removing the aircraft
+                        DatabaseController.removeAircraft(aircraft.getAircraftID());
+                        aircraftListFrame.dispose(); // Close main list
+                        JOptionPane.showMessageDialog(detailsDialog, "Aircraft removed successfully.");
+                        detailsDialog.dispose(); // Close the details dialog
+                        browseAircrafts(); // Refresh list...
+                    }
                 }
             }
         });

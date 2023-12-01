@@ -44,6 +44,7 @@ public class PaymentForm extends JFrame implements EmailNotif {
         frame = new JFrame("Payment Form");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(400, 600); // Increased height for additional information
+        frame.setLocationRelativeTo(null); // Center the frame on the screen
 
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));

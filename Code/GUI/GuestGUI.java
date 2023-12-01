@@ -21,14 +21,14 @@ public class GuestGUI extends JFrame{
     private JTextField flightNumField;
     private JTextField flightStartField;
     private JTextField flightDestField;
-    private JTextArea resultArea;
+    private JEditorPane resultArea; // Replaced JTextArea with JEditorPane
     private JLabel welcomeLabel;
 
     public GuestGUI() {
         // Initialize components
         frame = new JFrame("Guest GUI");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(930, 600);
+        frame.setSize(940, 610);
         frame.setLocationRelativeTo(null); // Center the frame on the screen
 
         welcomeLabel = new JLabel("Welcome Guest");
@@ -59,9 +59,11 @@ public class GuestGUI extends JFrame{
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
         // Center panel with flight list
-        resultArea = new JTextArea(20, 40);
+        resultArea = new JEditorPane("text/html", "");
+        resultArea.setEditable(false);
         JScrollPane resultScrollPane = new JScrollPane(resultArea);
         mainPanel.add(resultScrollPane, BorderLayout.CENTER);
+        resultScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
         // Bottom panel with search form
         JPanel formPanel = new JPanel();
@@ -87,7 +89,6 @@ public class GuestGUI extends JFrame{
         formPanel.setPreferredSize(new Dimension(400, 200));
         JPanel centeringPanel = new JPanel(new GridBagLayout());
         centeringPanel.add(formPanel);
-
         mainPanel.add(centeringPanel, BorderLayout.SOUTH);
 
         // Layout the main frame
@@ -201,14 +202,27 @@ public class GuestGUI extends JFrame{
         departureTime = departureTime.isEmpty() ? null : departureTime;
         flightstart = flightstart.isEmpty() ? null : flightstart;
 
+        System.out.println(departureTime);
+        System.out.println(flightNum);
+        System.out.println(flightDest);
+
         // Use your existing search function here
         ArrayList<String> searchResults = DatabaseController.searchFlights(departureTime, flightNum, flightDest, flightstart);
 
         // Display the results in the result area
-        resultArea.setText(""); // Clear previous results
+        StringBuilder htmlContent = new StringBuilder("<html>");
+        htmlContent.append("<style>body { font-family: Arial; font-size: 9.5px; }");
+        htmlContent.append("div { border: 1px solid black; padding: 10px; margin-bottom: 10px; background-color: #c3f3fa; }");
+        htmlContent.append("</style>");
         for (String info : searchResults) {
-            resultArea.append(info + "\n\n");
+            htmlContent.append("<div>");
+            htmlContent.append(info);
+            htmlContent.append("</div>");
         }
+        htmlContent.append("</html>");
+
+        // Set the HTML content to the JEditorPane
+        resultArea.setText(htmlContent.toString());
     }
 
     private void handleFlightClick(String flightNumber, Date departureDate, String location, String dest, Aircraft aircraft) {

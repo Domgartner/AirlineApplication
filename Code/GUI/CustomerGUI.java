@@ -22,14 +22,14 @@ public class CustomerGUI extends JFrame {
     private JTextField flightNumField;
     private JTextField flightStartField;
     private JTextField flightDestField;
-    private JTextArea resultArea;
+    private JEditorPane resultArea; // Replaced JTextArea with JEditorPane
     private JLabel welcomeLabel;
 
     public CustomerGUI() {
         // Initialize components
         frame = new JFrame("Customer GUI");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(930, 600);
+        frame.setSize(940, 610);
         frame.setLocationRelativeTo(null); // Center the frame on the screen
 
         welcomeLabel = new JLabel("Welcome " + User.getFirstName()+ " " + User.getLastName());
@@ -62,9 +62,11 @@ public class CustomerGUI extends JFrame {
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
         // Center panel with flight list
-        resultArea = new JTextArea(20, 40);
+        resultArea = new JEditorPane("text/html", "");
+        resultArea.setEditable(false);
         JScrollPane resultScrollPane = new JScrollPane(resultArea);
         mainPanel.add(resultScrollPane, BorderLayout.CENTER);
+        resultScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
         // Bottom panel with Form & Manage buttons
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -107,10 +109,8 @@ public class CustomerGUI extends JFrame {
         // Layout the main frame
         frame.getContentPane().add(mainPanel);
 
-        // Add action listener to the search button
+        // Add action listener to the search button & initialize
         searchButton.addActionListener(this::searchAction);
-
-        // Initialize the result area after it's added to the panel
         searchAction(null);
 
         // Add mouse listener to the result area
@@ -230,10 +230,19 @@ public class CustomerGUI extends JFrame {
         ArrayList<String> searchResults = DatabaseController.searchFlights(departureTime, flightNum, flightDest, flightstart);
 
         // Display the results in the result area
-        resultArea.setText(""); // Clear previous results
+        StringBuilder htmlContent = new StringBuilder("<html>");
+        htmlContent.append("<style>body { font-family: Arial; font-size: 9.5px; }");
+        htmlContent.append("div { border: 1px solid black; padding: 10px; margin-bottom: 10px; background-color: #c3f3fa; }");
+        htmlContent.append("</style>");
         for (String info : searchResults) {
-            resultArea.append(info + "\n\n");
+            htmlContent.append("<div>");
+            htmlContent.append(info);
+            htmlContent.append("</div>");
         }
+        htmlContent.append("</html>");
+
+        // Set the HTML content to the JEditorPane
+        resultArea.setText(htmlContent.toString());
     }
 
     private void handleFlightClick(String flightNumber, Date departureDate, String location, String dest, Aircraft aircraft) {
@@ -253,7 +262,6 @@ public class CustomerGUI extends JFrame {
         new LoginForm().setVisible(true);
     }
 
-
     private void managePurchasesAction(ActionEvent event) {
         // Perform actions when the "Manage Purchases" button is clicked
         // Create a new instance of ManagePurchasesGUI
@@ -261,7 +269,6 @@ public class CustomerGUI extends JFrame {
         // Display the ManagePurchasesGUI
         managePurchasesGUI.display();
     }
-    
 
     public void display() {
         // Show the frame

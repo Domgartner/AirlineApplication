@@ -46,7 +46,7 @@ public class SeatSelectGUI extends JFrame {
     }
 
     private void updateSeatButton(JButton seatButton, Seat seat) {
-        seatButton.setBackground(new Color(151, 220, 230));
+        seatButton.setBackground(new Color(125, 209, 202));
         seatButton.setText(String.format("%s\nPrice: %.2f", seat.getSeatNum(), seat.getPrice()));
 
         seatButton.setToolTipText(String.format("Type: %s, Price: %.2f", seat.getSeatType(), seat.getPrice()));
