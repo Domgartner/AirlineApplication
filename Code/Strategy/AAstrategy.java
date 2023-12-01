@@ -1,4 +1,5 @@
 package Code.Strategy;
+
 import Code.GUI.AAGUI;
 
 public class AAstrategy implements Strategy{

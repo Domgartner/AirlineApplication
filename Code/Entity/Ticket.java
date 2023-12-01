@@ -15,6 +15,5 @@ public class Ticket {
 
     public Seat getSeat() {
         return seat;
-    }
-    
+    } 
 }

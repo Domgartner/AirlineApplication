@@ -15,6 +15,5 @@ public class Receipt {
 
     public Seat getSeat() {
         return seat;
-    }
-      
+    }  
 }
