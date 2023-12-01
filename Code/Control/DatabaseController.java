@@ -194,7 +194,7 @@ public class DatabaseController {
     public static void addFlight(Flight flight){
         try {
             Connection connection = getOnlyInstance();
-            String query = "INSERT INTO FLIGHTS (FlightNum, FlightStart, FlightDest, AircraftID, DepartureDate) VALUES (?, ?, ?, ?, ?)";
+            String query = "INSERT INTO FLIGHTS (FlightNum, FlightStart, FlightDest, AircraftID, DepartureDate, leaveTime) VALUES (?, ?, ?, ?, ?, ?)";
             
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 preparedStatement.setString(1, flight.getFlightNum());
@@ -202,6 +202,7 @@ public class DatabaseController {
                 preparedStatement.setString(3, flight.getDestination());
                 preparedStatement.setInt(4, flight.getAircraftID());
                 preparedStatement.setString(5, flight.getDepartureDate().getFormattedDate());
+                preparedStatement.setString(6, flight.getdepTime());
                 preparedStatement.executeUpdate();
             }
             String insert = "INSERT INTO SEATS (SeatNum, FlightNum, Available, SeatType, Price) VALUES" +
