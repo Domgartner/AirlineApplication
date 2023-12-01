@@ -126,10 +126,11 @@ public class GuestGUI extends JFrame{
                     String aircraftType = null;
                     String totalSeats = null;
                     String departureDateStr = null;
+                    String departureTimeStr = null;
         
                     // Extract values using the matcher
                     int index = 0;
-                    while (matcher.find() && index < 7) {
+                    while (matcher.find() && index < 8) {
                         String value = matcher.group(1).trim();
                         switch (index) {
                             case 0:
@@ -153,7 +154,9 @@ public class GuestGUI extends JFrame{
                             case 6:
                                 departureDateStr = value;
                                 break;
-                            // Add more cases if needed
+                            case 7:
+                                departureTimeStr = value;
+                                break;
                         }
                         index++;
                     }
@@ -169,7 +172,7 @@ public class GuestGUI extends JFrame{
                         Aircraft aircraft = new Aircraft(intAircraftID, aircraftType, intTotalSeats);
         
                         // Handle the click with all extracted information
-                        handleFlightClick(flightNumber, departureDate, departureLocation, destination, aircraft);
+                        handleFlightClick(flightNumber, departureDate, departureTimeStr, departureLocation, destination, aircraft);
                     } else {
                         System.out.println("Values not found.");
                     }
@@ -225,9 +228,9 @@ public class GuestGUI extends JFrame{
         resultArea.setText(htmlContent.toString());
     }
 
-    private void handleFlightClick(String flightNumber, Date departureDate, String location, String dest, Aircraft aircraft) {
+    private void handleFlightClick(String flightNumber, Date departureDate, String depTime, String location, String dest, Aircraft aircraft) {
         // Create a new Flight object based on the clicked flight number
-        Flight selectedFlight = new Flight(flightNumber, departureDate, aircraft, dest, location);
+        Flight selectedFlight = new Flight(flightNumber, departureDate, aircraft, dest, location, depTime);
         setVisible(false);
         // Create an instance of SeatSelectGUI with the selected flight
         SeatSelectGUI seatSelectGUI = new SeatSelectGUI(selectedFlight);

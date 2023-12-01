@@ -251,17 +251,19 @@ public class AdminGUI extends JFrame {
     
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     
-        JPanel detailsPanel = new JPanel(new GridLayout(4, 1));
+        JPanel detailsPanel = new JPanel(new GridLayout(5, 1));
         detailsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     
         JLabel flightNumLabel = new JLabel("Flight Number: " + flight.getFlightNum());
         JLabel departureDateLabel = new JLabel("Departure Date: " + flight.getDepartureDate().getFormattedDate());
         JLabel departureLocationLabel = new JLabel("Departure Location: " + flight.getStartPoint());
+        JLabel departureTimeLabel = new JLabel("Departure Time: " + flight.getdepTime());
         JLabel destinationLabel = new JLabel("Destination: " + flight.getDestination());
     
         detailsPanel.add(flightNumLabel);
         detailsPanel.add(departureDateLabel);
         detailsPanel.add(departureLocationLabel);
+        detailsPanel.add(departureTimeLabel);
         detailsPanel.add(destinationLabel);
     
         mainPanel.add(detailsPanel, BorderLayout.CENTER);
@@ -292,7 +294,7 @@ public class AdminGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Create a dialog for selecting the update type
-                String[] options = {"Change Flight Origin", "Change Flight Destination", "Change Aircraft", "Change Departure Date"};
+                String[] options = {"Change Flight Origin", "Change Flight Destination", "Change Aircraft", "Change Departure Date", "Change Departure Time"};
                 String adjustment = (String) JOptionPane.showInputDialog(
                     detailsDialog,
                     "Select the update type:",
@@ -344,6 +346,10 @@ public class AdminGUI extends JFrame {
                 userInput = showUpdateForm("Enter new departure date:", "Change Departure Date", flight.getDepartureDate().getFormattedDate());
                 DatabaseController.changeDepartureDate(flightNum, userInput);
                 break;
+            case "Change Departure Time":
+                userInput = showUpdateForm("Enter new departure time:", "Change Departure Time", flight.getdepTime());
+                DatabaseController.changeDepartureTime(flightNum, userInput);
+                break;
             default:
                 return false; // Indicate that the update was not successful for unknown adjustment types
         }
@@ -368,15 +374,18 @@ public class AdminGUI extends JFrame {
     private void showAddFlightForm(JFrame flightListFrame) {
         JTextField flightNumField = new JTextField();
         JTextField departureDateField = new JTextField();
+        JTextField departureTimeField = new JTextField();
         JTextField departureLocationField = new JTextField();
         JTextField destinationField = new JTextField();
         JTextField aircraftIDField = new JTextField();
     
-        JPanel p = new JPanel(new GridLayout(5, 2));
+        JPanel p = new JPanel(new GridLayout(6, 2));
         p.add(new JLabel("Flight Number:"));
         p.add(flightNumField);
         p.add(new JLabel("Departure Date:"));
         p.add(departureDateField);
+        p.add(new JLabel("Departure Time:"));
+        p.add(departureTimeField);
         p.add(new JLabel("Departure Location:"));
         p.add(departureLocationField);
         p.add(new JLabel("Destination:"));
@@ -395,6 +404,7 @@ public class AdminGUI extends JFrame {
             try {
                 String flightNumber = flightNumField.getText().trim();
                 String departureDateStr = departureDateField.getText().trim();
+                String departureTimeStr = departureTimeField.getText().trim();
                 String departureLocation = departureLocationField.getText().trim();
                 String destination = destinationField.getText().trim();
                 String aircraftid = aircraftIDField.getText().trim();
@@ -405,7 +415,7 @@ public class AdminGUI extends JFrame {
 
                 Date departureDate = new Date(day, month, year);
     
-                if (addFlight(flightNumber, departureDate, departureLocation, destination, aircraftid, flightListFrame)) {
+                if (addFlight(flightNumber, departureDate, departureTimeStr, departureLocation, destination, aircraftid, flightListFrame)) {
                     JOptionPane.showMessageDialog(this, "Flight added successfully!");
                     browseFlights(); // Refresh flight list...
                 }
@@ -416,7 +426,7 @@ public class AdminGUI extends JFrame {
         }
     }
     
-    private boolean addFlight(String flightNumber, Date departureDate, String departureLocation, String destination, String aircraftid, JFrame flightListFrame) {
+    private boolean addFlight(String flightNumber, Date departureDate, String departureTime, String departureLocation, String destination, String aircraftid, JFrame flightListFrame) {
         try {
             int aid = Integer.parseInt(aircraftid);
     
@@ -425,7 +435,7 @@ public class AdminGUI extends JFrame {
     
             // Check if the provided aircraftid is valid
             if (validAircraftIds.contains(aid)) {
-                Flight newFlight = new Flight(flightNumber, departureDate, aid, destination, departureLocation);
+                Flight newFlight = new Flight(flightNumber, departureDate, aid, destination, departureLocation, departureTime);
                 DatabaseController.addFlight(newFlight);
                 flightListFrame.dispose(); // Close main list
                 return true;

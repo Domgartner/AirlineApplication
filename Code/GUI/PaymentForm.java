@@ -33,6 +33,7 @@ public class PaymentForm extends JFrame implements EmailNotif {
     private JTextField lastNameField; 
     private JCheckBox insuranceCheckBox; 
     private JTextArea priceBreakdownArea;
+    private JCheckBox loungeCheckBox;
 
     public PaymentForm(Flight flight, Seat seat) {
         this.flight = flight;
@@ -42,7 +43,7 @@ public class PaymentForm extends JFrame implements EmailNotif {
 
     private void initializeComponents() {
         frame = new JFrame("Payment Form");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 600); // Increased height for additional information
         frame.setLocationRelativeTo(null); // Center the frame on the screen
 
@@ -57,6 +58,7 @@ public class PaymentForm extends JFrame implements EmailNotif {
         flightInfoArea.append(String.format("Destination: %s\n", flight.getDestination()));
         flightInfoArea.append(String.format("Departure Location: %s\n", flight.getStartPoint()));
         flightInfoArea.append(String.format("Departure Date: %s\n", flight.getDepartureDate().getFormattedDate()));
+        flightInfoArea.append(String.format("Departure Time: %s\n", flight.getdepTime()));
 
         // Display seat information
         JTextArea seatInfoArea = new JTextArea();
@@ -101,24 +103,17 @@ public class PaymentForm extends JFrame implements EmailNotif {
         securityCodeField.setBorder(BorderFactory.createTitledBorder("Security Code"));
 
         insuranceCheckBox = new JCheckBox("Purchase Cancellation Insurance $10"); // Updated insurance checkbox text
+        loungeCheckBox = new JCheckBox("Purchase Lounge Access $50 ($10 for members)"); // New checkbox for lounge access
+        formPanel.add(loungeCheckBox); // Added lounge access checkbox
 
         JButton submitButton = new JButton("Submit");
         submitButton.addActionListener(this::submitAction);
+        insuranceCheckBox.addItemListener(e -> updatePriceBreakdown());
 
-        // Add an ItemListener to the insuranceCheckBox
-        insuranceCheckBox.addItemListener(e -> {
-            boolean isSelected = insuranceCheckBox.isSelected();
-            double insurancePrice = isSelected ? 10 : 0;
-            double totalWithInsurance = totalPrice + insurancePrice;
+        // Add an ItemListener to the loungeCheckBox
+        loungeCheckBox.addItemListener(e -> updatePriceBreakdown());
 
-            // Update the price breakdown text
-            priceBreakdownArea.setText("");
-            priceBreakdownArea.append("Price Breakdown:\n");
-            priceBreakdownArea.append(String.format("Seat Price: $%.2f\n", seat.getPrice()));
-            priceBreakdownArea.append(String.format("GST (5%%): $%.2f\n", gst));
-            priceBreakdownArea.append(String.format("Cancellation Insurance $%d\n", isSelected ? 10 : 0));
-            priceBreakdownArea.append(String.format("Total Price: $%.2f\n", totalWithInsurance));
-        });
+
 
         formPanel.add(flightInfoArea);
         formPanel.add(seatInfoArea);
@@ -132,6 +127,28 @@ public class PaymentForm extends JFrame implements EmailNotif {
 
         frame.getContentPane().add(BorderLayout.CENTER, formPanel);
     }
+
+    // Add an ItemListener to the insuranceCheckBox
+    private void updatePriceBreakdown() {
+        boolean isSelected = insuranceCheckBox.isSelected();
+        double insurancePrice = isSelected ? 10 : 0;
+        double totalWithInsurance = totalPrice + insurancePrice;
+    
+        boolean isLoungeSelected = loungeCheckBox.isSelected();
+        double loungePrice = isLoungeSelected ? (User.getEmail() != null ?  10 : 50) : 0;
+    
+        double totalTotal = totalWithInsurance + loungePrice;
+    
+        // Update the price breakdown text
+        priceBreakdownArea.setText("");
+        priceBreakdownArea.append("Price Breakdown:\n");
+        priceBreakdownArea.append(String.format("Seat Price: $%.2f\n", seat.getPrice()));
+        priceBreakdownArea.append(String.format("GST (5%%): $%.2f\n", gst));
+        priceBreakdownArea.append(String.format("Cancellation Insurance $%d\n", isSelected ? 10 : 0));
+        priceBreakdownArea.append(String.format("Lounge Access: $%.2f\n", loungePrice));
+        priceBreakdownArea.append(String.format("Total Price: $%.2f\n", totalTotal));
+    }
+    
 
     private void submitAction(ActionEvent event) {
         // Perform actions when the Submit button is clicked
@@ -160,6 +177,9 @@ public class PaymentForm extends JFrame implements EmailNotif {
         if (cardNumber.isEmpty() || expiryDate.isEmpty() || securityCode.isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Please fill in all the required fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return; // Do not proceed further if fields are not filled
+        } else if (!isValidCreditCardNumber(cardNumber) || !isValidExpiryDateFormat(expiryDate) || !isValidSecurityCode(securityCode)) {
+            JOptionPane.showMessageDialog(frame, "Entered credit card information is incorrect. Please try again.", "Incorect Information", JOptionPane.ERROR_MESSAGE);
+            return;
         }
         System.out.println(seat.getSeatNum());
         DatabaseController.purchaseTicket(firstName, lastName, email, flight.getFlightNum().trim(), seat.getSeatNum().trim(), purchaseInsurance, totalPrice);
@@ -167,8 +187,27 @@ public class PaymentForm extends JFrame implements EmailNotif {
         receipt = new Receipt(flight, seat); // Create a new receipt
         sendEmail();
         String price = String.valueOf(totalPrice);
-        User.addPurchase(new Purchase(firstName, lastName, seat, flight, insuranceCheckBox.isSelected(), price));
+        User.addPurchase(new Purchase(firstName, lastName, seat, flight, insuranceCheckBox.isSelected(), price, loungeCheckBox.isSelected()));
+        JOptionPane.showMessageDialog(frame, "Seat Purchased Successfully", "Purchase Successful", JOptionPane.INFORMATION_MESSAGE);
         frame.dispose();
+    }
+
+    private boolean isValidCreditCardNumber(String cardNumber) {
+        // Credit card number should be 16 digits
+        String regex = "^[0-9]{16}$";
+        return cardNumber.matches(regex);
+    }
+    
+    private boolean isValidExpiryDateFormat(String expiryDate) {
+        // Expiry date should be in MM/YY format
+        String regex = "^(0[1-9]|1[0-2])/(\\d{2})$";
+        return expiryDate.matches(regex);
+    }
+    
+    private boolean isValidSecurityCode(String securityCode) {
+        // Security code should be 3 or 4 digits
+        String regex = "^[0-9]{3,4}$";
+        return securityCode.matches(regex);
     }
     
     public void display() {
@@ -196,6 +235,7 @@ public class PaymentForm extends JFrame implements EmailNotif {
         });
         try {
             // Create a MimeMessage
+            System.out.println("EMAIL");
             boolean isSelected = insuranceCheckBox.isSelected();
             double insurancePrice = isSelected ? 10 : 0;
             double totalWithInsurance = totalPrice + insurancePrice;
@@ -204,15 +244,18 @@ public class PaymentForm extends JFrame implements EmailNotif {
             if (User.getEmail() == null || User.getEmail().contains("airlineAgent")) {
                 message.setRecipient(Message.RecipientType.TO, new InternetAddress(emailField.getText()));
                 message.setText(String.format("%s %s, thank you for purchasing a ticket with ENSF480 Airline. Below contains your ticket and receipt:" +
-                "\n\nFlight Summary:\n\tFlight Number: %s\n\tFlight Departure Location: %s\n\tFlight Destination: %s\n\tFlight Date: %s\n\tSeat Number: %s\n\tSeat Type: %s\n\nTicket Summary:\n\tCancellation Insurance: %s\n\tSeat Price: %s\n\tGST: %s\n\tTotal Price: %s", firstNameField.getText(), lastNameField.getText(), receipt.getFlight().getFlightNum(), receipt.getFlight().getStartPoint(), receipt.getFlight().getDestination(),
-                receipt.getFlight().getDepartureDate().getFormattedDate(), receipt.getSeat().getSeatNum(), receipt.getSeat().getSeatType(), insuranceCheckBox.isSelected(), receipt.getSeat().getPrice(), gst, totalWithInsurance));
+                "\n\nFlight Summary:\n\tFlight Number: %s\n\tFlight Departure Location: %s\n\tDeparture Time: %s\n\tFlight Destination: %s\n\tFlight Date: %s\n\tSeat Number: %s\n\tSeat Type: %s\n\nTicket Summary:\n\tCancellation Insurance: %s\n\tLounge Access: %sf\n\tSeat Price: $%s\n\tGST: $%s\n\tTotal Price: $%s", firstNameField.getText(), lastNameField.getText(), receipt.getFlight().getFlightNum(), 
+                receipt.getFlight().getStartPoint(),receipt.getFlight().getdepTime(), receipt.getFlight().getDestination(),receipt.getFlight().getDepartureDate().getFormattedDate(), 
+                receipt.getSeat().getSeatNum(), receipt.getSeat().getSeatType(), insuranceCheckBox.isSelected(), loungeCheckBox.isSelected(), receipt.getSeat().getPrice(), gst, totalWithInsurance));
             } else {
                 message.setRecipient(Message.RecipientType.TO, new InternetAddress(User.getEmail()));
                 message.setText(String.format("%s %s, thank you for purchasing a ticket with ENSF480 Airline. Below contains your ticket and receipt:" +
-                "\n\nFlight Summary:\n\tFlight Number: %s\n\tFlight Departure Location: %s\n\tFlight Destination: %s\n\tFlight Date: %s\n\tSeat Number: %s\n\tSeat Type: %s\n\nTicket Summary:\n\tCancellation Insurance: %s\n\tSeat Price: %s\n\tGST: %s\n\tTotal Price: %s", User.getFirstName(), User.getLastName(), receipt.getFlight().getFlightNum(), receipt.getFlight().getStartPoint(), receipt.getFlight().getDestination(),
-                receipt.getFlight().getDepartureDate().getFormattedDate(), receipt.getSeat().getSeatNum(), receipt.getSeat().getSeatType(),insuranceCheckBox.isSelected(), receipt.getSeat().getPrice(), gst, totalWithInsurance));
+                "\n\nFlight Summary:\n\tFlight Number: %s\n\tFlight Departure Location: %s\n\tDeparture Time: %s\n\tFlight Destination: %s\n\tFlight Date: %s\n\tSeat Number: %s\n\tSeat Type: %s\n\n"
+                +"Ticket Summary:\n\tCancellation Insurance: %s\n\tLounge Access: %s\n\tSeat Price: $%s\n\tGST: $%s\n\tTotal Price: $%s", User.getFirstName(), User.getLastName(), receipt.getFlight().getFlightNum(), receipt.getFlight().getStartPoint(), 
+                receipt.getFlight().getdepTime(), receipt.getFlight().getDestination(), receipt.getFlight().getDepartureDate().getFormattedDate(), receipt.getSeat().getSeatNum(), receipt.getSeat().getSeatType(),
+                insuranceCheckBox.isSelected(), loungeCheckBox.isSelected(), receipt.getSeat().getPrice(), gst, totalWithInsurance));
             }
-            message.setSubject("Sign Up Confirmation");
+            message.setSubject("Payment Successful");
             // Send the email
             Transport.send(message);
         } catch (MessagingException e) {

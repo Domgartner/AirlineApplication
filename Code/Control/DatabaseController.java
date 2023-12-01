@@ -100,7 +100,6 @@ public class DatabaseController {
         Connection connection = getOnlyInstance();
         String sql = "SELECT * FROM FLIGHTS";
         ArrayList<Flight> availableFlights = new ArrayList<>();
-    
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -114,10 +113,11 @@ public class DatabaseController {
                 Date departure = new Date(day, month, year);
                 int aircraftID = resultSet.getInt("AircraftID");
                 String flightDest = resultSet.getString("FlightDest");
+                String depTime = resultSet.getString("leaveTime");
                 String flightStart = resultSet.getString("FlightStart");
     
                 // Assuming you have a Flight constructor that takes these parameters
-                Flight flight = new Flight(flightNum, departure, aircraftID, flightDest, flightStart);
+                Flight flight = new Flight(flightNum, departure, aircraftID, flightDest, flightStart, depTime);
                 availableFlights.add(flight);
             }
     
@@ -408,40 +408,40 @@ public class DatabaseController {
         ArrayList<String> matchingFlights = new ArrayList<>();
         // Constructing the base of the SQL query
         StringBuilder sql = new StringBuilder("SELECT DISTINCT * FROM FLIGHTS F INNER JOIN AIRCRAFT A ON F.AircraftID = A.AircraftID");
-// List to keep track of parameters to be set in the prepared statement
-ArrayList<Object> parameters = new ArrayList<>();
-// Check and append conditions based on the provided parameters
-if (departureDate != null && !departureDate.isEmpty()) {
-    sql.append(" WHERE F.DepartureDate = ? ");
-    parameters.add(departureDate);
-}
-if (flightNum != null && !flightNum.isEmpty()) {
-    if (!parameters.isEmpty()) {
-        sql.append(" AND ");
-    } else {
-        sql.append(" WHERE ");
-    }
-    sql.append("F.FlightNum = ? ");
-    parameters.add(flightNum);
-}
-if (flightDest != null && !flightDest.isEmpty()) {
-    if (!parameters.isEmpty()) {
-        sql.append(" AND ");
-    } else {
-        sql.append(" WHERE ");
-    }
-    sql.append("F.FlightDest = ? ");
-    parameters.add(flightDest);
-}
-if (flightStart != null && !flightStart.isEmpty()) {
-    if (!parameters.isEmpty()) {
-        sql.append(" AND ");
-    } else {
-        sql.append(" WHERE ");
-    }
-    sql.append("F.FlightStart = ? ");
-    parameters.add(flightStart);
-}
+        // List to keep track of parameters to be set in the prepared statement
+        ArrayList<Object> parameters = new ArrayList<>();
+        // Check and append conditions based on the provided parameters
+        if (departureDate != null && !departureDate.isEmpty()) {
+            sql.append(" WHERE F.DepartureDate = ? ");
+            parameters.add(departureDate);
+        }
+        if (flightNum != null && !flightNum.isEmpty()) {
+            if (!parameters.isEmpty()) {
+                sql.append(" AND ");
+            } else {
+                sql.append(" WHERE ");
+            }
+            sql.append("F.FlightNum = ? ");
+            parameters.add(flightNum);
+        }
+        if (flightDest != null && !flightDest.isEmpty()) {
+            if (!parameters.isEmpty()) {
+                sql.append(" AND ");
+            } else {
+                sql.append(" WHERE ");
+            }
+            sql.append("F.FlightDest = ? ");
+            parameters.add(flightDest);
+        }
+        if (flightStart != null && !flightStart.isEmpty()) {
+            if (!parameters.isEmpty()) {
+                sql.append(" AND ");
+            } else {
+                sql.append(" WHERE ");
+            }
+            sql.append("F.FlightStart = ? ");
+            parameters.add(flightStart);
+        }
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString());
             // Setting the parameters in the prepared statement
@@ -458,9 +458,10 @@ if (flightStart != null && !flightStart.isEmpty()) {
                 String aircraftType = resultSet.getString("PlaneType");
                 String departure = resultSet.getString("DepartureDate");
                 String start = resultSet.getString("FlightStart");
+                String depTime = resultSet.getString("leaveTime");
                 String flightInfo = String.format(
-                        "Flight Number: '%s'  Destination: '%s'  Departure Location: '%s'  AircraftID: '%s'  Aircraft Type: '%s'  Total Seats: '%s'  Departure: '%s'",
-                        flightNumber, destination, start, aircraft, aircraftType, numseats, departure);
+                        "Flight Number: '%s'  Destination: '%s'  Departure Location: '%s'  AircraftID: '%s'  Aircraft Type: '%s'  Total Seats: '%s'  Departure: '%s'  DepartureTime: '%s'",
+                        flightNumber, destination, start, aircraft, aircraftType, numseats, departure, depTime);
                 matchingFlights.add(flightInfo);
             }
             return matchingFlights;
@@ -525,7 +526,7 @@ if (flightStart != null && !flightStart.isEmpty()) {
         ArrayList<Purchase> purchases = new ArrayList<>();
         Connection connection = getOnlyInstance();
         // Define the SQL query
-        String sql = "SELECT DISTINCT P.firstName, P.lastName, P.flightNum, P.seatNum, P.insurance, P.price, F.FlightStart, F.FlightDest, F.departureDate, S.SeatType FROM passengers P INNER JOIN flights F ON P.flightNum = F.flightNum INNER JOIN Seats S ON S.SeatNum = P.SeatNum WHERE P.email = ?;";
+        String sql = "SELECT DISTINCT P.firstName, P.lounge, P.lastName, P.flightNum, P.seatNum, P.insurance, P.price, F.FlightStart, F.FlightDest, F.leaveTime, F.departureDate, S.SeatType FROM passengers P INNER JOIN flights F ON P.flightNum = F.flightNum INNER JOIN Seats S ON S.SeatNum = P.SeatNum WHERE P.email = ?;";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             // Set the parameters
             preparedStatement.setString(1, email);
@@ -537,9 +538,11 @@ if (flightStart != null && !flightStart.isEmpty()) {
                 String lName = resultSet.getString("lastName");
                 String flightNum = resultSet.getString("flightNum");
                 String seatNum = resultSet.getString("seatNum");
+                String deptime = resultSet.getString("leaveTIme");
                 String price = resultSet.getString("price");
                 String flightStart = resultSet.getString("FlightStart");
                 Boolean insurance = resultSet.getBoolean("insurance");
+                Boolean lounge = resultSet.getBoolean("lounge");
                 String flightDest = resultSet.getString("FlightDest");
                 String seatType = resultSet.getString("SeatType");
                 String[] departureDate = resultSet.getString("departureDate").split("-");
@@ -549,9 +552,9 @@ if (flightStart != null && !flightStart.isEmpty()) {
                 double intprice = Double.parseDouble(price);
                 Date depDate = new Date(day, month, year);
                 Seat seat = new Seat(seatNum, false, seatType, intprice);
-                Flight flight = new Flight(flightNum, depDate, null, flightDest, flightStart);
+                Flight flight = new Flight(flightNum, depDate, null, flightDest, flightStart, deptime);
                 // Purchase purchase = new Purchase(fName, lName, flightNum, seatNum, flightStart, flightDest, depDate, price, insurance);
-                Purchase purchase = new Purchase(fName, lName, seat, flight, insurance, price);
+                Purchase purchase = new Purchase(fName, lName, seat, flight, insurance, price, lounge);
                 purchases.add(purchase);
             }
         } catch (SQLException e) {
@@ -634,6 +637,22 @@ if (flightStart != null && !flightStart.isEmpty()) {
             
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 preparedStatement.setString(1, departureDate);
+                preparedStatement.setString(2, flightNum);
+                preparedStatement.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+     public static void changeDepartureTime(String flightNum, String departureTime){
+        try {
+            Connection connection = getOnlyInstance();
+            String query = "UPDATE FLIGHTS SET leaveTime = ? WHERE FlightNum = ?";
+            
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, departureTime);
                 preparedStatement.setString(2, flightNum);
                 preparedStatement.executeUpdate();
             }
